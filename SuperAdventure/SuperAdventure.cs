@@ -15,6 +15,7 @@ namespace SuperAdventure
     public partial class SuperAdventure : Form
     {
         private Player _player;
+        private Monster _currentMonster;
         public SuperAdventure()
         { 
             InitializeComponent();
@@ -32,22 +33,22 @@ namespace SuperAdventure
 
         private void btnNorth_Click(object sender, EventArgs e)
         {
-
+            MoveTo(_player.CurrentLocation.LocationToNorth);
         }
 
         private void btnWest_Click(object sender, EventArgs e)
         {
-
+            MoveTo(_player.CurrentLocation.LocationToWest);
         }
 
         private void btnEast_Click(object sender, EventArgs e)
         {
-
+            MoveTo(_player.CurrentLocation.LocationToEast);
         }
 
         private void btnSouth_Click(object sender, EventArgs e)
         {
-
+            MoveTo(_player.CurrentLocation.LocationToSouth);
         }
 
         private void MoveTo(Location newLocation)
@@ -157,8 +158,15 @@ namespace SuperAdventure
 
                                 }
                             }
+                            rtbMessages.Text += "You receive :" + Environment.NewLine;
+                            rtbMessages.Text += newLocation.QuestAvailableHere.RewardExperiencePoints.ToString() + "experience points" + Environment.NewLine;
+                            rtbMessages.Text += newLocation.QuestAvailableHere.RewardGold.ToString() + "Gold" + Environment.NewLine;
+                            rtbMessages.Text += newLocation.QuestAvailableHere.RewardItem.Name + "Items" + Environment.NewLine;
+                            rtbMessages.Text += Environment.NewLine;
+                            
 
                             _player.ExperiencePoints += newLocation.QuestAvailableHere.RewardExperiencePoints;
+
                             _player.Gold += newLocation.QuestAvailableHere.RewardGold;
 
                             bool additemtoinventory = false;
@@ -194,13 +202,154 @@ namespace SuperAdventure
                 }
                 else
                 {
+                    rtbMessages.Text += "You receive the " + newLocation.QuestAvailableHere.Name + " quest." + Environment.NewLine;
+                    rtbMessages.Text += newLocation.QuestAvailableHere.Description + Environment.NewLine;
+                    rtbMessages.Text += "To complete it, return with:" + Environment.NewLine;
+
+
+                    foreach(QuestCompletionItem qci in newLocation.QuestAvailableHere.QuestCompletionItems)
+                    {
+                        if (qci.Quantity == 1)
+                        {
+                            rtbMessages.Text += qci.Quantity.ToString() + " " + qci.Details.Name + Environment.NewLine;
+                            
+                        }
+                        else
+                        {
+                            rtbMessages.Text += qci.Quantity.ToString() + " " + qci.Details.NamePlural + Environment.NewLine;
+                        }
+                    }
+                    rtbMessages.Text += Environment.NewLine;
+                    
                     _player.Quests.Add(new PlayerQuest(newLocation.QuestAvailableHere));
                 }
             }
 
+            if (newLocation.MonsterLivingHere != null)
+            {
+                rtbMessages.Text += "You see a monster " + newLocation.MonsterLivingHere.Name + Environment.NewLine;
+
+                Monster standardMonster = World.MonsterByID(newLocation.MonsterLivingHere.ID);
+                _currentMonster = new Monster(standardMonster.ID, standardMonster.Name, standardMonster.MaximumDamage,standardMonster.RewardExperiencePoints, standardMonster.RewardGold,standardMonster.MaximumHitPoints,standardMonster.CurrentHitPoints);
+
+                foreach(LootItem lt in standardMonster.LootTable)
+                {
+                    _currentMonster.LootTable.Add(lt);
+           
+                }
+                cboPotions.Visible = true;
+                cboWeapons.Visible = true;
+                btnUseWeapon.Visible = true;
+                btnUsePotion.Visible = true;
 
 
+            }
+            else
+            {
+                _currentMonster = null;
+
+                cboPotions.Visible = false;
+                cboWeapons.Visible = false;
+                btnUseWeapon.Visible = false;
+                btnUsePotion.Visible = false;
+
+            }
+
+            dgvInventory.RowHeadersVisible = false;
+
+            dgvInventory.ColumnCount = 2;
+            dgvInventory.Columns[0].Name = "Name";
+            dgvInventory.Columns[0].Width = 197;
+            dgvInventory.Columns[1].Name = "Quantity";
+
+            foreach(InventoryItem ii in _player.Inventory)
+            {
+                if(ii.Quantity > 0)
+                {
+                    dgvInventory.Rows.Add(new[] { ii.Details.Name, ii.Quantity.ToString() });
+                }
+
+            }
+
+            dgvQuests.RowHeadersVisible = false;
+
+            dgvQuests.ColumnCount = 2;
+
+            dgvQuests.Columns[0].Name = "Name";
+            dgvQuests.Columns[0].Width = 197;
+            dgvQuests.Columns[1].Name = "Done ?";
+
+            foreach(PlayerQuest pq in _player.Quests)
+            {
+                dgvQuests.Rows.Add(new[] { pq.Details.Name, pq.IsCompleted.ToString() });
+            }
+
+            List<Weapon> weapons = new List<Weapon>();
+
+            foreach(InventoryItem ii in _player.Inventory)
+            {
+                if(ii.Details is Weapon)
+                {
+                    if(ii.Quantity > 0)
+                    {
+                        weapons.Add((Weapon)ii.Details);
+                    }
+                }
+            }
+            if(weapons.Count == 0)
+            {
+                cboWeapons.Visible =false;
+                btnUseWeapon.Visible = false;
+
+            }
+            else
+            {
+                cboWeapons.DataSource = weapons;
+                cboWeapons.DisplayMember = "Name";
+                cboWeapons.ValueMember = "ID";
+
+                cboWeapons.SelectedIndex = 0;
+
+            }
+            List<HealingPotion> healingPotions = new List<HealingPotion>();
+
+            foreach(InventoryItem ii in _player.Inventory)
+            {
+                if(ii.Details is HealingPotion)
+                {
+                    if (ii.Quantity > 0)
+                    {
+                        healingPotions.Add((HealingPotion)ii.Details);
+                    }
+                }
+                
+            }             
+
+
+            if(healingPotions.Count == 0)
+            {
+                cboPotions.Visible = false;
+                btnUsePotion.Visible = false;
+            }
+            else
+            {
+                cboPotions.DataSource = healingPotions;
+                cboPotions.DisplayMember = "Name";
+                cboPotions.ValueMember = "ID";
+
+                cboPotions.SelectedIndex = 0;
+            }
+        }
+
+        private void btnUseWeapon_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnUsePotion_Click(object sender, EventArgs e)
+        {
 
         }
     }
 }
+

@@ -66,15 +66,15 @@ namespace Engine
 
         private static void PopulateMonsters()
         {
-            Monster rat = new Monster(MONSTER_ID_RAT,"RAT",5,3,10,3);
+            Monster rat = new Monster(MONSTER_ID_RAT,"RAT",5,3,10,3,3);
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RAT_TAIL), 75, false));
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_PIECE_OF_FUR), 75, true));
 
-            Monster snake = new Monster(MONSTER_ID_SNAKE, "snake", 5, 3, 10, 3);
+            Monster snake = new Monster(MONSTER_ID_SNAKE, "snake", 5, 3, 10, 3,3);
             snake.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SNAKESKIN), 50, true));
             snake.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SNAKE_FANG), 75, false));
 
-            Monster spider = new Monster(MONSTER_ID_GIANT_SPIDER, "Giant Spider", 20, 10, 40, 10);
+            Monster spider = new Monster(MONSTER_ID_GIANT_SPIDER, "Giant Spider", 20, 10, 40, 10,10);
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SPIDER_FANG), 75, true));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SPIDER_SILK), 25, false));
 
